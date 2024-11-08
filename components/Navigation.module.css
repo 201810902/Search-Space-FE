@@ -1,0 +1,22 @@
+.nav{
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 64px;
+    height: 100vh;
+    background-color: rgb(148, 172, 240);
+}
+
+.link {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: black;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+}
+
+.span{
+    font-size: small;
+}
