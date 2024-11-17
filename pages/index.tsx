@@ -1,5 +1,6 @@
 import Nav from '../components/Navigation';
+import React, { useEffect } from 'react';
 function Home() {
-  return <>{/* <Nav /> */}</>;
+  return (<></>);
 }
 export default Home;
