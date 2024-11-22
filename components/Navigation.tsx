@@ -2,39 +2,82 @@ import style from './Navigation.module.css';
 import Link from 'next/link';
 import Image from 'next/image';
 import mypage from '../public/mypage-logo.svg';
-import MainLogo from '../public/logo1.svg';
+import MainLogo from '../public/kr_logo.svg';
 import Map from '../public/map.svg';
-import Add from '../public/add-space.svg';
-import Scrap from '../public/scrap-icon.svg';
+import Map_active from '../public/map_active.svg';
+import AddSpace from '../public/addSpace.svg';
+import AddSpace_active from '@/public/addSpace_active.svg';
+import Scrap from '../public/scrap.svg';
+import Scrap_active from '../public/scrap_active.svg';
+
+import { useState } from 'react';
 
 const Navigation = () => {
+  const [activeLink, setActiveLink] = useState('');
+
+  const handleLinkClick = (link: string) => {
+    setActiveLink(link);
+  };
   return (
     <>
-      <nav className={style.nav}>
-        <Link href="/" className={style.link}>
-          <Image src={MainLogo} alt="홈페이지 메뉴" width={50} height={50} />
-        </Link>
-
-        <Link href="/map" className={style.link}>
-          <Image src={Map} alt="지도 보기 메뉴" width={30} height={30} />
-          <span className={style.span}>지도보기</span>
-        </Link>
-
-        <Link href="/favorite" className={style.link}>
-          <Image src={Scrap} alt="찜한공간 보기 메뉴" width={30} height={30} />
-          <span className={style.span}>찜한 공간</span>
-        </Link>
-
-        <Link href="/addspace" className={style.link}>
-          <Image src={Add} alt="공간등록 페이지 메뉴" width={30} height={30} />
-          <span className={style.span}>공간 등록</span>
-        </Link>
-
-        <Link href="/mypage" className={style.link}>
-          <Image src={mypage} alt="마이페이지 메뉴" width={30} height={30} />
-          <span className={style.span}>마이페이지</span>
-        </Link>
-      </nav>
+      <div className={style.container}>
+        <nav className={style.nav}>
+          <Link
+            href="/"
+            className={`${style.link} ${activeLink === '/' ? style.active : ''}`}
+            onClick={() => handleLinkClick('/')}
+          >
+            <Image src={MainLogo} alt="홈페이지 메뉴" width={50} height={50} />
+          </Link>
+          <Link
+            href="/map"
+            className={`${style.link} ${activeLink === '/map' ? style.active : ''}`}
+            onClick={() => handleLinkClick('/map')}
+          >
+            <Image
+              src={activeLink === '/map' ? Map_active : Map}
+              alt="지도 보기 메뉴"
+              width={30}
+              height={30}
+            />
+            <span className={style.span}>지도보기</span>
+          </Link>
+          <Link
+            href="/favorite"
+            className={`${style.link} ${activeLink === '/favorite' ? style.active : ''}`}
+            onClick={() => handleLinkClick('/favorite')}
+          >
+            <Image
+              src={activeLink === '/favorite' ? Scrap_active : Scrap}
+              alt="찜한공간 보기 메뉴"
+              width={30}
+              height={30}
+            />
+            <span className={style.span}>찜한 공간</span>
+          </Link>
+          <Link
+            href="/addspace"
+            className={`${style.link} ${activeLink === '/addspace' ? style.active : ''}`}
+            onClick={() => handleLinkClick('/addspace')}
+          >
+            <Image
+              src={activeLink === '/addspace' ? AddSpace_active : AddSpace}
+              alt="공간등록 페이지 메뉴"
+              width={30}
+              height={30}
+            />
+            <span className={style.span}>공간 등록</span>
+          </Link>
+          <Link
+            href="/mypage"
+            className={`${style.link} ${activeLink === '/mypage' ? style.active : ''}`}
+            onClick={() => handleLinkClick('/mypage')}
+          >
+            <Image src={mypage} alt="마이페이지 메뉴" width={30} height={30} />
+            <span className={style.span}>마이페이지</span>
+          </Link>
+        </nav>
+      </div>
     </>
   );
 };
