@@ -1,0 +1,125 @@
+.spaceInfo {
+  border: none;
+  border-radius: 9px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.spaceInfoInput {
+  border: none;
+  border-radius: 9px;
+  padding: 10px;
+}
+
+.selectContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.selectBtn {
+  background-color: transparent;
+  border-radius: 9px;
+  border: 2px solid #777777;
+  cursor: pointer;
+  padding: 3px 5px;
+}
+
+.buttonContainer {
+  display: flex;
+  /* flex-direction: column; */
+  gap: 5px;
+  width: 30%;
+}
+
+.timePickerContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+/*TimePicker*/
+/* :global(.react-time-picker) {
+  display: inline-flex;
+  position: relative;
+}
+
+:global(.react-time-picker__wrapper) {
+  border: none;
+} */
+
+.timeSelectorContainer {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  font-size: 14px;
+  padding: 5px;
+}
+
+.timeSelectorLabel {
+  font-weight: 600;
+  color: #555555;
+}
+
+.addressSearchBtn {
+  background-color: transparent;
+  border: none;
+  /* border-radius: 2px; */
+  cursor: pointer;
+  background-image: url('../public/searchBtn.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 20px;
+  height: 20px;
+  padding: 5px;
+  margin-left: 5px;
+}
+
+.addressModalcloseBtn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+}
+/*토글 넣어보기*/
+/* .timeSection {
+    width: 100%;
+    margin: 10px 0;
+}
+
+.timeHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.timeHeader:hover {
+    background-color: #e0e0e0;
+}
+
+.timeContent {
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+.arrow {
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.up {
+    transform: rotate(180deg);
+}
+
+.down {
+    transform: rotate(0deg);
+} */

@@ -1,0 +1,218 @@
+.mypageContainer {
+    display: flex;
+    flex-direction: column;
+    margin-top: 30px;
+    margin-left: 30px;
+}
+
+.profileContainer {
+    display: flex;
+    /* flex-direction: column; */
+    align-items: center;
+    gap: 10px;
+
+}
+
+.profileImgContainer {
+    background-image: url('../../public/profileEX.png');
+    background-size: cover;
+    background-position: center;
+    width: 100px;
+    height: 100px;
+}
+
+.profileInfoContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.nickname {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.editBtn {
+    background-color: #9fc4ff;
+    color: #fff;
+    border: none;
+    height: 30px;
+    border-radius: 50px;
+    font-weight: medium;
+    cursor: pointer;
+}
+
+.editBtn:hover {
+    background-color: #4d7ecc;
+}
+
+.mySpaceAndReviewContainer {
+    display: flex;
+    gap: 40px;
+    padding-top: 30px;
+}
+
+.myContent {
+    border: none;
+    color: #929292;
+    background-color: transparent;
+    font-size: medium;
+    font-weight: bold;
+    /* background-image: url('../public/myspace.png'); */
+    /* background-size: cover;
+    background-position: center; */
+    /* width: 100px;
+    height: 100px; */
+}
+.mySpaceBtn, .myReviewBtn {
+    border: none;
+    color: hsl(224, 100%, 53%);
+    background-color: transparent;
+    font-size: medium;
+    font-weight: bold;
+}
+
+/* 
+.myReviewBtn {
+    border: none;
+
+    background-image: url('../public/myreview.png');
+    background-size: cover;
+    background-position: center;
+    width: 100px;
+    height: 100px;
+} */
+
+.mySpaceBtnContainer {
+    display: flex;
+    /* flex-direction: column; */
+    gap: 10px;
+    align-items: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: #0233B9;
+}
+
+.mySpaceBtn:hover,
+.myReviewBtn:hover,
+.myContent:hover {
+    cursor: pointer;
+    color: #0233B9;
+    /* box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3); */
+}
+
+.content {
+    /* background-color: #9fc4ff; */
+    padding: 20px;
+    height: 100%;
+}
+
+.mypageMenu {
+    display: flex;
+    justify-content: space-between;
+    border-top: 2px solid #7192ee;
+    border-bottom: 2px solid #7192ee;
+    padding: 10px;
+    gap: 5px;
+}
+
+.sortBtnContainer {
+    display: flex;
+    gap: 5px;
+}
+
+.gridView,
+.listView {
+
+    background-size: cover;
+    background-position: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+
+}
+
+.gridViewOn {
+    background-image: url('../../public/gridon.png');
+}
+
+.gridViewOff {
+    background-image: url('../../public/gridoff.png');
+}
+
+.listViewOn {
+    background-image: url('../../public/liston.png');
+}
+
+.listViewOff {
+    background-image: url('../../public/listoff.png');
+}
+
+.gridView:hover,
+.listView:hover {
+    cursor: pointer;
+}
+
+.listViewOn,
+.listViewOff,
+.gridViewOn,
+.gridViewOff {
+
+    background-size: cover;
+    background-position: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+
+.listViewContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.gridViewContainer {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    /* justify-content: space-between;a */
+}
+
+.contentListItem {
+    padding: 5px;
+    border-bottom: 1px solid #7192ee;
+}
+
+
+.contentListItem:hover,
+.contentGridItem:hover {
+    cursor: pointer;
+    background-color: #779dff;
+}
+
+.contentGridItem {
+    margin: 10px;
+    padding: 10px;
+    /* border: 1px solid #7192ee; */
+    background-color: #b6cff7;
+    width: 230px;
+    height: 230px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.contentItemImgContainer {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    padding-top: 10px;
+    overflow: hidden;
+
+}
