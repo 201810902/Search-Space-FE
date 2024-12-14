@@ -1,13 +1,25 @@
-.container{
+.container {
     display: flex;
+    position: relative;
     width: 100%;
-    height: 100vh;
+    height: 100%;
     /* position: relative; */
+    contain: content;
+    overflow: hidden;
 }
 
-.map{
-   flex: 1;
-   height: 100%;
+#map {
+    width: 100%;
+    height: 100%;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
+    contain: content;
+}
+
+.map {
+    flex: 1;
+    height: 100%;
 }
 
 /* 
@@ -20,62 +32,86 @@
     
 } */
 
-.sidePanelContainer{
-    position: relative;
+.sidePanelContainer {
+    position: absolute;
     display: flex;
     height: 100%;
+    z-index: 1000;
 }
-.sidePanel{
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 300px;
+
+.sidePanel:not(.sidePanelClosed) {
+    border: 1px solid rgb(170, 170, 170);
+    border-radius: 10px;
+}
+
+.sidePanel {
+    position: relative;
+    /* top: 0;
+    left: 0; */
+
+    width: 500px;
     height: 100%;
     background-color: #fff;
     transition: transform 0.3s ease;
+    z-index: 1000;
+    display: flex;
 }
 
-.sidePanelClosed{
-    display: none;
+.sidePanelClosed {
+    /* display: none; */
+    transform: translateX(-100%);
 }
 
-.panelOpenBtn {
+.panelCloseBtn {
     position: absolute;
-    right: -25px;    
+    right: 0;
+    left: 500px;
     top: 50%;
     transform: translateY(-50%);
     width: 25px;
     height: 70px;
     background-image: url('../public/lessthan.svg');
-    background-size: conver;
+    background-size: 50%;
     background-repeat: no-repeat;
     background-position: center;
-    border-right: 2px solid rgb(163, 163, 163);
-    border-top: 2px solid rgb(163, 163, 163);
-    border-bottom: 2px solid rgb(163, 163, 163);
+    /* border: 2px solid rgb(163, 163, 163); */
+    /* border-top: 2px solid rgb(163, 163, 163);
+    border-bottom: 2px solid rgb(163, 163, 163); */
+    background-color: #fff;
     border-left: none;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.panelOpenBtn {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 25px;
+    height: 70px;
+    background-image: url('../public/greaterthan.svg');
+    background-size: 50%;
+    background-repeat: no-repeat;
+    background-position: center;
+    /* border-left: 2px solid rgb(163, 163, 163);
+    border-top: 2px solid rgb(163, 163, 163);
+    border-bottom: 2px solid rgb(163, 163, 163); */
+    background-color: #fff;
+    border-style: none;
+    /* border-left: none; */
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     cursor: pointer;
 }
 
-.panelCloseBtn {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 25px;
-    height: 70px;
-    background-image: url('../public/greaterthan.svg');
-    background-size: conver;
-    background-repeat: no-repeat;
-    background-position: center;
-    border-right: 2px solid rgb(163, 163, 163);
-    border-top: 2px solid rgb(163, 163, 163);
-    border-bottom: 2px solid rgb(163, 163, 163);
-    border-left: none;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-    cursor: pointer;
+.sidePanelContent {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    padding-left: 10px;
 }
 
 /* 지도 확대축소버튼 */
@@ -88,4 +124,101 @@
     flex-direction: column;
     gap: 10px;
     z-index: 1000;
+}
+
+.zoomBtnContainer {
+    display: flex;
+    flex-direction: column;
+
+}
+
+.zoomInBtn,
+.zoomOutBtn,
+.currentLocationBtn {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 1px solid #c2c2c2;
+}
+
+.zoomInBtn:hover,
+.zoomOutBtn:hover,
+.currentLocationBtn:hover {
+    background-color: #e8e8e8;
+}
+
+.zoomInBtn {
+    background-image: url('../public/plus.svg');
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+
+}
+
+.zoomOutBtn {
+    background-image: url('../public/minus.svg');
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.currentLocationBtn {
+    background-color: white;
+    background-image: url('../public/start.svg');
+    border-radius: 5px;
+    background-size: 80%;
+}
+
+.mapfilterGroup {
+    position: absolute;
+    top: 10px;
+    left: 584px;
+    display: flex;
+    gap: 10px;
+    z-index: 500;
+    transition: left 0.3s ease;
+}
+
+.sidePanelContainer:has(.sidePanelClosed)~.mapfilterGroup {
+    left: 45px;
+    /* panelOpenBtn의 width(25px) + 여백(20px) */
+}
+
+.isCafeOnly,
+.activeFilter,
+.unactiveFilter {
+    border-radius: 20px;
+    width: 80px;
+    height: 35px;
+    border-style: none;
+    font-size: medium;
+    font-weight: 500;
+
+}
+
+.activeFilter {
+    background-color: #4085e6;
+    color: #fff;
+}
+
+.unactiveFilter {
+    background-color: #e9f2ff;
+    border: 1px solid #838383;
+}
+
+.panelOpenBtn,
+.panelCloseBtn {
+    border: 1px solid black;
+    z-index: 1000;
+}
+
+.panelOpenBtn {
+    border-right: none;
+    right: 60px;
+
+}
+
+.panelCloseBtn {
+    border-left: none;
 }
