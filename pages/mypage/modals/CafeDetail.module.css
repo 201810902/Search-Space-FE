@@ -1,0 +1,16 @@
+.title{
+    font-size: 20px;
+    font-weight: bold;
+    color:rgb(39, 39, 180);
+}
+
+.address{
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.cafeDetailContainer{
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}

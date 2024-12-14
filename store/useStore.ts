@@ -1,5 +1,6 @@
+// eslint-disable-next-line prettier/prettier
 import { create } from 'zustand';
-
+import { mountStoreDevtool } from 'simple-zustand-devtools';
 interface StoreState {
   isLoggedIn: boolean;
   user: {

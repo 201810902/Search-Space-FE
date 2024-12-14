@@ -1,20 +1,23 @@
-.container{
+.container {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    z-index: 2000;
 }
 
-.nav{
+.nav {
     display: flex;
     flex-direction: column;
-    padding-top:1rem;
+    padding-top: 1rem;
     gap: 1.5rem;
     width: 64px;
     height: 100%;
     border-radius: 10px;
-    background-color: rgba(211, 233, 252, 0.966);
-        
+    background-color: rgba(248, 248, 248, 0.966);
+
 }
+
 .navopen {
     display: flex;
     flex-direction: column;
@@ -38,16 +41,17 @@
     cursor: pointer;
 }
 
-.link:hover{
-    color:rgb(87, 131, 253);
+.link:hover {
+    color: rgb(87, 131, 253);
     /* background-color: rgb(87, 131, 253); */
 
 }
-.link.active{
+
+.link.active {
     color: rgb(87, 131, 253);
     font-weight: bold;
 }
-.span{
+
+.span {
     font-size: small;
 }
-

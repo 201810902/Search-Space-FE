@@ -1,15 +1,19 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Children } from 'react';
 import styles from './map.module.css';
 import open from '../public/lessthan.svg';
 import close from '../public/greaterthan.svg';
+import Marker from '../components/Marker';
+import type { naver } from '../types/naver';
 declare global {
   interface Window {
-    naver: any;
+    naver: typeof naver;
   }
 }
 
 export default function Map() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
+  const [isCafeOnly, setIsCafeOnly] = useState(false);
+  const [isOpenOnly, setIsOpenOnly] = useState(false);
   const handlePanelOpen = () => {
     setIsPanelOpen(!isPanelOpen);
   };
@@ -39,33 +43,26 @@ export default function Map() {
       }
     }
   }, [userLocation]);
-  // const sendBoundsToBackend = useCallback(() => {
-  //   if (mapRef.current && userLocation) {
-  //     const bounds = mapRef.current.getBounds();
-  //     if (bounds) {
-  //       const northEast = bounds.getNE();
-  //       const southWest = bounds.getSW();
-  //       const center = bounds.getCenter();
-  //       const coordinates = {
-  //         userLocation: userLocation, //사용자 접속위치
-  //         topLeft: { lat: northEast.lat(), lng: southWest.lng() }, // 맨 왼쪽 위
-  //         topRight: { lat: northEast.lat(), lng: northEast.lng() }, // 맨 오른쪽 위
-  //         bottomLeft: { lat: southWest.lat(), lng: southWest.lng() }, // 맨 왼쪽 아래
-  //         bottomRight: { lat: southWest.lat(), lng: northEast.lng() }, // 맨 오른쪽 아래
-  //         center: { lat: center.lat(), lng: center.lng() }, //가운데
-  //       };
-  //       console.log('Coordinates to send to backend:', coordinates);
-  //     } else {
-  //       console.error('Bounds is undefined or invalid');
-  //     }
-  //   }
-  // }, [userLocation]);
 
   useEffect(() => {
     const initMap = (latitude: number, longitude: number) => {
+      if (!window.naver || !window.naver.maps) return;
+
       const mapOptions = {
         center: new window.naver.maps.LatLng(latitude, longitude),
         zoom: 14,
+        tileTransition: false,
+        loadingDisplay: false,
+        bounds: new window.naver.maps.LatLngBounds(
+          new window.naver.maps.LatLng(latitude - 0.02, longitude - 0.02),
+          new window.naver.maps.LatLng(latitude + 0.02, longitude + 0.02),
+        ),
+        //타일 로딩 최적화
+        maxZoom: 20,
+        minZoom: 10,
+        scaleControl: false,
+        mapDataControl: false,
+        tileSize: new window.naver.maps.Size(256, 256),
       };
 
       mapRef.current = new window.naver.maps.Map('map', mapOptions);
@@ -106,6 +103,7 @@ export default function Map() {
         isMoving = false;
       });
     };
+
     const loadMapScript = () => {
       const mapScript = document.createElement('script');
       mapScript.onload = () => {
@@ -118,7 +116,7 @@ export default function Map() {
     const getUserLocation = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          position => {
+          (position) => {
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
             setUserLocation({ lat: latitude, lng: longitude }); // 사용자의 위치 저장
@@ -130,7 +128,7 @@ export default function Map() {
             initMap(latitude, longitude);
             // sendBoundsToBackend();
           },
-          error => {
+          (error) => {
             console.error('Geolocation error: ', error);
             // 기본 위치로 초기화
             initMap(37.3595704, 127.105399);
@@ -150,6 +148,12 @@ export default function Map() {
     }
   }, []); //의존성배열 userLocation 넣으면 무한로딩문제발생함;
 
+  const handleCafeOnly = () => {
+    setIsCafeOnly(!isCafeOnly);
+  };
+  const handleOpenOnly = () => {
+    setIsOpenOnly(!isOpenOnly);
+  };
   const zoomIn = () => {
     //지도 확대
     if (mapRef.current) {
@@ -167,7 +171,7 @@ export default function Map() {
   const moveCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        position => {
+        (position) => {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
           // 사용자의 현재 위치로 지도 중심 이동
@@ -176,7 +180,7 @@ export default function Map() {
           );
           setUserLocation({ lat: latitude, lng: longitude }); // 사용자의 위치 업데이트
         },
-        error => {
+        (error) => {
           console.error('Geolocation error: ', error);
         },
       );
@@ -198,30 +202,53 @@ export default function Map() {
   // }
   return (
     <div className={styles.container}>
-      <div id="map" style={{ width: '100%', height: '100%' }} ref={mapRef} />
+      <div
+        id="map"
+        ref={mapRef}
+        style={{
+          width: '100%',
+          height: '100%',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          willChange: 'transform', // 성능 최적화를 위한 속성,
+        }}
+      />
+
       <div className={styles.sidePanelContainer}>
         <div
           className={`${styles.sidePanel} ${!isPanelOpen ? styles.sidePanelClosed : ''}`}
         >
-          사이드패널
+          <div className={styles.sidePanelContent}></div>
         </div>
         <button
           onClick={handlePanelOpen}
-          className={isPanelOpen ? styles.panelOpenBtn : styles.panelCloseBtn}
+          className={isPanelOpen ? styles.panelCloseBtn : styles.panelOpenBtn}
+        ></button>
+      </div>
+      <div className={styles.mapfilterGroup}>
+        <button
+          className={isCafeOnly ? styles.activeFilter : styles.unactiveFilter}
+          onClick={handleCafeOnly}
         >
-          {/* <Image
-            src={navopen ? close : open}
-            alt="메뉴 열기"
-            width={30}
-            height={30}
-          /> */}
+          카페
+        </button>
+        <button
+          className={isOpenOnly ? styles.activeFilter : styles.unactiveFilter}
+          onClick={handleOpenOnly}
+        >
+          운영중
         </button>
       </div>
       {/* 버튼그룹 */}
       <div className={styles.buttonContainer}>
-        <button onClick={zoomIn}>확대</button>
-        <button onClick={zoomOut}>축소</button>
-        <button onClick={moveCurrentLocation}>현위치</button>
+        <div className={styles.zoomBtnContainer}>
+          <button onClick={zoomIn} className={styles.zoomInBtn}></button>
+          <button onClick={zoomOut} className={styles.zoomOutBtn}></button>
+        </div>
+        <button
+          onClick={moveCurrentLocation}
+          className={styles.currentLocationBtn}
+        ></button>
       </div>
     </div>
   );

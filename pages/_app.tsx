@@ -14,6 +14,10 @@ export default function App({ Component, pageProps }: AppProps) {
       <Script
         strategy="afterInteractive" //"beforeInteractive"으로 찾았는데 경고메세지 떠가지고 after로 수정해줬습니다.
         src={`https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${process.env.NEXT_PUBLIC_NAVER_CLIENT_ID}`}
+        onLoad={() => {
+          console.log('Naver Map Loaded');
+          window.dispatchEvent(new Event('naverMapLoaded'));
+        }}
       ></Script>
       <Layout>
         <Nav />
