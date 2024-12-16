@@ -10,10 +10,21 @@ declare global {
   }
 }
 
+interface CafeData {
+  id: number;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  openTime: string;
+  closeTime: string;
+  isOpen: boolean;
+}
 export default function Map() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [isCafeOnly, setIsCafeOnly] = useState(false);
   const [isOpenOnly, setIsOpenOnly] = useState(false);
+  const [cafeData, setCafeData] = useState<CafeData[]>([]);
   const handlePanelOpen = () => {
     setIsPanelOpen(!isPanelOpen);
   };
@@ -116,7 +127,7 @@ export default function Map() {
     const getUserLocation = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          (position) => {
+          position => {
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
             setUserLocation({ lat: latitude, lng: longitude }); // 사용자의 위치 저장
@@ -128,7 +139,7 @@ export default function Map() {
             initMap(latitude, longitude);
             // sendBoundsToBackend();
           },
-          (error) => {
+          error => {
             console.error('Geolocation error: ', error);
             // 기본 위치로 초기화
             initMap(37.3595704, 127.105399);
@@ -147,6 +158,21 @@ export default function Map() {
       loadMapScript(); //naver maps api 로드
     }
   }, []); //의존성배열 userLocation 넣으면 무한로딩문제발생함;
+
+  //marker 불러오기
+  useEffect(() => {
+    const fetchCafeData = async () => {
+      try {
+        const response = await fetch('/cafedata.json');
+        const data = await response.json();
+        console.log('카페 데이터', data); //카페 데이터 출력해보기
+        setCafeData(data);
+      } catch (error) {
+        console.error('데이터 불러오기 실패', error);
+      }
+    };
+    fetchCafeData();
+  }, []);
 
   const handleCafeOnly = () => {
     setIsCafeOnly(!isCafeOnly);
@@ -171,7 +197,7 @@ export default function Map() {
   const moveCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        position => {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
           // 사용자의 현재 위치로 지도 중심 이동
@@ -180,7 +206,7 @@ export default function Map() {
           );
           setUserLocation({ lat: latitude, lng: longitude }); // 사용자의 위치 업데이트
         },
-        (error) => {
+        error => {
           console.error('Geolocation error: ', error);
         },
       );
@@ -200,6 +226,10 @@ export default function Map() {
   // const zoomIn = () => {
   //   if (mapRef.current)
   // }
+  const handleMarkerClick = (cafe: CafeData) => {
+    // setSelectedCafe(cafe);
+    // setIsPanelOpen(true);
+  };
   return (
     <div className={styles.container}>
       <div
@@ -225,30 +255,53 @@ export default function Map() {
           className={isPanelOpen ? styles.panelCloseBtn : styles.panelOpenBtn}
         ></button>
       </div>
-      <div className={styles.mapfilterGroup}>
-        <button
-          className={isCafeOnly ? styles.activeFilter : styles.unactiveFilter}
-          onClick={handleCafeOnly}
-        >
-          카페
-        </button>
-        <button
-          className={isOpenOnly ? styles.activeFilter : styles.unactiveFilter}
-          onClick={handleOpenOnly}
-        >
-          운영중
-        </button>
-      </div>
-      {/* 버튼그룹 */}
-      <div className={styles.buttonContainer}>
-        <div className={styles.zoomBtnContainer}>
-          <button onClick={zoomIn} className={styles.zoomInBtn}></button>
-          <button onClick={zoomOut} className={styles.zoomOutBtn}></button>
+      <div className={styles.mapContainer}>
+        <div id="map" className={styles.map} ref={mapRef} />
+
+        {/* 카페 마커 렌더링 */}
+        {mapRef.current &&
+          cafeData.map(cafe => (
+            <Marker
+              key={cafe.id}
+              map={mapRef.current}
+              position={{
+                lat: cafe.latitude,
+                lng: cafe.longitude,
+              }}
+              icon={{
+                url: '/cafemarker.svg',
+                size: new window.naver.maps.Size(37, 37),
+                origin: new window.naver.maps.Point(0, 0),
+                anchor: new window.naver.maps.Point(18, 37),
+              }}
+              onClick={() => handleMarkerClick(cafe)}
+            />
+          ))}
+        <div className={styles.mapfilterGroup}>
+          <button
+            className={isCafeOnly ? styles.activeFilter : styles.unactiveFilter}
+            onClick={handleCafeOnly}
+          >
+            카페
+          </button>
+          <button
+            className={isOpenOnly ? styles.activeFilter : styles.unactiveFilter}
+            onClick={handleOpenOnly}
+          >
+            운영중
+          </button>
         </div>
-        <button
-          onClick={moveCurrentLocation}
-          className={styles.currentLocationBtn}
-        ></button>
+        {/* 버튼그룹 */}
+        <div className={styles.buttonContainer}>
+          <div className={styles.zoomBtnContainer}>
+            <button onClick={zoomIn} className={styles.zoomInBtn}></button>
+            <button onClick={zoomOut} className={styles.zoomOutBtn}></button>
+          </div>
+          <button
+            onClick={moveCurrentLocation}
+            className={styles.currentLocationBtn}
+          ></button>
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { naver } from '../types/naver';
+import styles from './Marker.module.css';
 declare global {
   interface Window {
     naver: typeof naver;
@@ -22,29 +23,59 @@ interface MarkerProps {
 
 const NaverMarker = ({ map, position, icon, onClick }: MarkerProps) => {
   const markerRef = useRef<naver.maps.Marker | null>(null);
+  const listenerRef = useRef<any>(null);
 
   useEffect(() => {
     const initMarker = () => {
-      if (!window.naver) return;
-
-      // 마커 생성
-      const marker = new window.naver.maps.Marker({
-        position: new window.naver.maps.LatLng(position.lat, position.lng),
-        map: map,
-        icon: icon && {
-          url: icon.url,
-          size: icon.size || new window.naver.maps.Size(24, 37),
-          origin: icon.origin || new window.naver.maps.Point(0, 0),
-          anchor: icon.anchor || new window.naver.maps.Point(12, 37),
-        },
-      });
-
-      // 클릭 이벤트 설정
-      if (onClick) {
-        window.naver.maps.Event.addListener(marker, 'click', onClick);
+      if (!window.naver) {
+        console.error('네이버 api 아직 로딩되지 않음');
+        return;
       }
+      try {
+        console.log('마커 생성 시도:', {
+          position,
+          icon,
+        });
 
-      markerRef.current = marker;
+        // const markerOptions = {
+        //   position: new window.naver.maps.LatLng(position.lat, position.lng),
+        //   map: map,
+        //   icon: {
+        //     url: icon.url,
+        //     size: icon.size,
+        //     origin: icon.origin,
+        //     anchor: icon.anchor,
+        //     scaledSize: new window.naver.maps.Size(37, 37),
+        //   },
+        // };
+        // console.log('마커 위치', position);
+
+        // 마커 생성
+        const marker = new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(position.lat, position.lng),
+          map: map,
+          icon: icon && {
+            url: icon.url,
+            size: icon.size || new window.naver.maps.Size(32, 32),
+            origin: icon.origin || new window.naver.maps.Point(0, 0),
+            anchor: icon.anchor || new window.naver.maps.Point(16, 16),
+          },
+        });
+        console.log('show marker!', marker);
+
+        // 클릭 이벤트 설정
+        if (onClick) {
+          listenerRef.current = window.naver.maps.Event.addListener(
+            marker,
+            'click',
+            onClick,
+          );
+        }
+
+        markerRef.current = marker;
+      } catch (error) {
+        console.error('마커 생성 중 오류:', error);
+      }
     };
 
     // 네이버 맵이 이미 로드되어 있는 경우
@@ -63,12 +94,8 @@ const NaverMarker = ({ map, position, icon, onClick }: MarkerProps) => {
     return () => {
       if (markerRef.current) {
         markerRef.current.setMap(null);
-        if (onClick) {
-          window.naver.maps.Event.removeListener(
-            markerRef.current,
-            'click',
-            onClick,
-          );
+        if (listenerRef.current) {
+          window.naver.maps.Event.removeListener(listenerRef.current);
         }
       }
     };
