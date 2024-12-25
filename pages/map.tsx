@@ -4,6 +4,7 @@ import open from '../public/lessthan.svg';
 import close from '../public/greaterthan.svg';
 import Marker from '../components/Marker';
 import type { naver } from '../types/naver';
+import { useNavigationStore } from '@/store/navigationStore';
 declare global {
   interface Window {
     naver: typeof naver;
@@ -25,6 +26,7 @@ export default function Map() {
   const [isCafeOnly, setIsCafeOnly] = useState(false);
   const [isOpenOnly, setIsOpenOnly] = useState(false);
   const [cafeData, setCafeData] = useState<CafeData[]>([]);
+  const { activeMenu } = useNavigationStore();
   const handlePanelOpen = () => {
     setIsPanelOpen(!isPanelOpen);
   };
@@ -229,6 +231,15 @@ export default function Map() {
   const handleMarkerClick = (cafe: CafeData) => {
     // setSelectedCafe(cafe);
     // setIsPanelOpen(true);
+  };
+
+  const renderSidePanel = () => {
+    switch (activeMenu) {
+      case 'map':
+        return <div className={styles.sidePanelContent}>사이드패널</div>;
+      case 'favorite':
+        return <div className={styles.sidePanelContent}>리스트</div>;
+    }
   };
   return (
     <div className={styles.container}>

@@ -9,14 +9,19 @@ import AddSpace from '../public/addSpace.svg';
 import AddSpace_active from '@/public/addSpace_active.svg';
 import Scrap from '../public/scrap.svg';
 import Scrap_active from '../public/scrap_active.svg';
-
+import { useNavigationStore } from '@/store/navigationStore';
+import Search from '../public/search.svg';
+import Search_active from '../public/search_active.svg';
 import { useState } from 'react';
 
 const Navigation = () => {
   const [activeLink, setActiveLink] = useState('');
+  const { activeMenu, setActiveMenu } = useNavigationStore();
 
   const handleLinkClick = (link: string) => {
     setActiveLink(link);
+    setActiveMenu(link);
+    console.log('nav 상태 테스트', activeMenu, activeLink);
   };
   return (
     <>
@@ -41,6 +46,19 @@ const Navigation = () => {
               height={30}
             />
             <span className={style.span}>지도보기</span>
+          </Link>
+          <Link
+            href="/Search"
+            className={`${style.link} ${activeLink === '/Search' ? style.active : ''}`}
+            onClick={() => handleLinkClick('/Search')}
+          >
+            <Image
+              src={activeLink === '/Search' ? Search_active : Search}
+              alt="공간 탐색 보기 메뉴"
+              width={45}
+              height={40}
+            />
+            <span className={style.span}>공간 탐색</span>
           </Link>
           <Link
             href="/favorite"

@@ -48,8 +48,7 @@
     position: relative;
     /* top: 0;
     left: 0; */
-
-    width: 500px;
+    width: 430px;
     height: 100%;
     background-color: #fff;
     transition: transform 0.3s ease;
@@ -65,7 +64,7 @@
 .panelCloseBtn {
     position: absolute;
     right: 0;
-    left: 500px;
+    left: 430px;
     top: 50%;
     transform: translateY(-50%);
     width: 25px;
@@ -117,8 +116,8 @@
 /* 지도 확대축소버튼 */
 .buttonContainer {
     position: absolute;
-    top: 50%;
-    right: 10px;
+    top: 45%;
+    right: 20px;
     width: 30px;
     display: flex;
     flex-direction: column;
@@ -142,6 +141,7 @@
     background-repeat: no-repeat;
     background-position: center;
     border: 1px solid #c2c2c2;
+    margin-bottom: 0.5px;
 }
 
 .zoomInBtn:hover,

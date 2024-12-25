@@ -4,6 +4,7 @@ import Nav from '../components/Navigation';
 import Layout from '../layouts/layout';
 // import Link from 'next/link';
 import Script from 'next/script';
+import { useNavigationStore } from '@/store/navigationStore';
 
 export default function App({ Component, pageProps }: AppProps) {
   console.log('NAVER_CLIENT_ID:', process.env.NEXT_PUBLIC_NAVER_CLIENT_ID);
