@@ -5,6 +5,8 @@ import close from '../public/greaterthan.svg';
 import Marker from '../components/Marker';
 import type { naver } from '../types/naver';
 import { useNavigationStore } from '@/store/navigationStore';
+import CafePreview from '../components/CafePreview';
+import { Cafe } from '@/types/cafe';
 declare global {
   interface Window {
     naver: typeof naver;
@@ -14,7 +16,12 @@ declare global {
 interface CafeData {
   id: number;
   name: string;
+  content: string;
   address: string;
+  type: string;
+  businessHours: string;
+  holidays: string;
+  url: string;
   latitude: number;
   longitude: number;
   openTime: string;
@@ -27,6 +34,12 @@ export default function Map() {
   const [isOpenOnly, setIsOpenOnly] = useState(false);
   const [cafeData, setCafeData] = useState<CafeData[]>([]);
   const { activeMenu } = useNavigationStore();
+  const [selectedCafe, setSelectedCafe] = useState<Cafe | null>(null);
+
+  const handleClosePreview = () => {
+    setSelectedCafe(null);
+  };
+
   const handlePanelOpen = () => {
     setIsPanelOpen(!isPanelOpen);
   };
@@ -216,20 +229,10 @@ export default function Map() {
       console.error('Geolocation is not supported by this browser.');
     }
   };
-  //   if (window.naver && window.naver.maps) {
-  //     initMap();
-  //   } else {
-  //     const mapScript = document.createElement('script');
-  //     mapScript.onload = () => initMap();
-  //     mapScript.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${process.env.NEXT_PUBLIC_NAVER_CLIENT_ID}`;
-  //     document.head.appendChild(mapScript);
-  //   }
-  // }, []);
-  // const zoomIn = () => {
-  //   if (mapRef.current)
-  // }
-  const handleMarkerClick = (cafe: CafeData) => {
-    // setSelectedCafe(cafe);
+  const handleMarkerClick = (cafe: Cafe) => {
+    console.log('선택된 카페:', cafe);
+
+    setSelectedCafe(cafe);
     // setIsPanelOpen(true);
   };
 
@@ -288,6 +291,9 @@ export default function Map() {
               onClick={() => handleMarkerClick(cafe)}
             />
           ))}
+        {selectedCafe && (
+          <CafePreview cafe={selectedCafe} onClose={handleClosePreview} />
+        )}
         <div className={styles.mapfilterGroup}>
           <button
             className={isCafeOnly ? styles.activeFilter : styles.unactiveFilter}
