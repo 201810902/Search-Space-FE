@@ -15,7 +15,7 @@ declare global {
 
 interface CafeData {
   id: number;
-  name: string;
+  title: string;
   content: string;
   address: string;
   type: string;
@@ -27,6 +27,8 @@ interface CafeData {
   openTime: string;
   closeTime: string;
   isOpen: boolean;
+  images: string[];
+  phoneNumber: string;
 }
 export default function Map() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
@@ -35,6 +37,26 @@ export default function Map() {
   const [cafeData, setCafeData] = useState<CafeData[]>([]);
   const { activeMenu } = useNavigationStore();
   const [selectedCafe, setSelectedCafe] = useState<Cafe | null>(null);
+  const [infowindow, setInfowindow] = useState<naver.maps.InfoWindow | null>(
+    null,
+  );
+  //마커 클릭시 열리는 정보창
+  useEffect(() => {
+    if (window.naver && window.naver.maps) {
+      const infoWindow = new window.naver.maps.InfoWindow({
+        content: '',
+        maxWidth: 300,
+        backgroundColor: '#fff',
+        borderColor: '#ddd',
+        borderWidth: 1,
+        anchorSize: new window.naver.maps.Size(10, 10),
+        anchorSkew: true,
+        pixelOffset: new window.naver.maps.Point(0, -5),
+        disableAnchor: false,
+      });
+      setInfowindow(infoWindow);
+    }
+  }, []);
 
   const handleClosePreview = () => {
     setSelectedCafe(null);
@@ -229,11 +251,56 @@ export default function Map() {
       console.error('Geolocation is not supported by this browser.');
     }
   };
-  const handleMarkerClick = (cafe: Cafe) => {
-    console.log('선택된 카페:', cafe);
+  const handleMarkerClick = (marker: naver.maps.Marker) => {
+    console.log('마커가 클릭됨', marker);
 
-    setSelectedCafe(cafe);
-    // setIsPanelOpen(true);
+    if (!mapRef.current || !infowindow) return;
+    // console.log('마커가 클릭됨. 선택된 카페:', cafe);
+
+    // 현재 마커의 위치 가져오기
+    const position = marker.getPosition();
+    const clickedCafe = cafeData.find(
+      cafe =>
+        Math.abs(cafe.latitude - position.lat()) < 0.0001 &&
+        Math.abs(cafe.longitude - position.lng()) < 0.0001,
+    );
+
+    if (!clickedCafe) {
+      console.error('카페 데이터를 찾을 수 없습니다');
+      return;
+    }
+
+    console.log('마커가 클릭됨. 선택된 카페:', clickedCafe);
+
+    // 기존 infowindow가 열려있다면 닫기
+    if (infowindow.getMap()) {
+      infowindow.close();
+    }
+
+    // InfoWindow 컨텐츠 설정
+    const content = `
+      <div style="padding: 15px; max-width: 300px; background: white;">
+        <h3 style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold;">${clickedCafe.title}</h3>
+        <p style="margin: 5px 0; font-size: 13px; color: #666;">${clickedCafe.address}</p>
+        ${
+          clickedCafe.images?.[0]
+            ? `
+          <div style="margin: 10px 0;">
+            <img src="${clickedCafe.images[0]}" 
+                 alt="${clickedCafe.title}" 
+                 style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px;"
+            />
+          </div>
+        `
+            : ''
+        }
+        <p style="margin: 5px 0; font-size: 13px; color: #666;">${clickedCafe.phoneNumber || ''}</p>
+      </div>
+    `;
+
+    // InfoWindow 설정 및 열기
+    infowindow.setContent(content);
+    infowindow.open(mapRef.current, marker);
   };
 
   const renderSidePanel = () => {
@@ -269,11 +336,12 @@ export default function Map() {
           className={isPanelOpen ? styles.panelCloseBtn : styles.panelOpenBtn}
         ></button>
       </div>
-      <div className={styles.mapContainer}>
+      <div className={styles.mapContainer} style={{ zIndex: 900 }}>
         <div id="map" className={styles.map} ref={mapRef} />
 
         {/* 카페 마커 렌더링 */}
         {mapRef.current &&
+          window.naver?.maps &&
           cafeData.map(cafe => (
             <Marker
               key={cafe.id}
@@ -288,7 +356,7 @@ export default function Map() {
                 origin: new window.naver.maps.Point(0, 0),
                 anchor: new window.naver.maps.Point(18, 37),
               }}
-              onClick={() => handleMarkerClick(cafe)}
+              onClick={marker => handleMarkerClick(marker)}
             />
           ))}
         {selectedCafe && (

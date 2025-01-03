@@ -1,6 +1,6 @@
 export interface Cafe {
   id: number;
-  name: string; // 또는 title
+  title: string; // 또는 title
   content: string;
   address: string;
   type: string;

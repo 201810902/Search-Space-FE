@@ -7,7 +7,7 @@ interface CafePreviewProps {
 const CafePreview = ({ cafe, onClose }: CafePreviewProps) => {
   return (
     <div>
-      <h1>{cafe.name}</h1>
+      <h1>{cafe.title}</h1>
     </div>
   );
 };
