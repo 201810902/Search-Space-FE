@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, Children } from 'react';
+import { api, apiService } from '../pages/api/api';
 import styles from './map.module.css';
 import open from '../public/lessthan.svg';
 import close from '../public/greaterthan.svg';
@@ -7,6 +8,7 @@ import type { naver } from '../types/naver';
 import { useNavigationStore } from '@/store/navigationStore';
 import CafePreview from '../components/CafePreview';
 import { Cafe } from '@/types/cafe';
+import Search from '../components/Search';
 declare global {
   interface Window {
     naver: typeof naver;
@@ -30,7 +32,41 @@ interface CafeData {
   images: string[];
   phoneNumber: string;
 }
+// 카페 데이터 로드 함수를 컴포넌트 외부로 분리
+const fetchCafesByBounds = async (
+  bounds: naver.maps.LatLngBounds,
+  userLat: number,
+  isOpen: boolean,
+) => {
+  const ne = bounds.getNE();
+  const sw = bounds.getSW();
+  const params = {
+    userLocation: [userLat] as [number],
+    topLeftLat: ne.lat(),
+    topLeftLng: sw.lng(),
+    bottomRightLat: sw.lat(),
+    bottomRightLng: ne.lng(),
+    limit: 20,
+    postType: 'CAFE' as 'CAFE',
+    isOpen: isOpen,
+    orderBy: 'DISTANCE' as 'DISTANCE',
+  };
+  console.log('API 요청 파라미터:', params);
+  try {
+    const data = await apiService.getCafes(params);
+
+    return data;
+  } catch (err) {
+    console.error('카페 정보 로드 실패:', err);
+    return [];
+  }
+};
+
 export default function Map() {
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [isCafeOnly, setIsCafeOnly] = useState(false);
   const [isOpenOnly, setIsOpenOnly] = useState(false);
@@ -40,6 +76,105 @@ export default function Map() {
   const [infowindow, setInfowindow] = useState<naver.maps.InfoWindow | null>(
     null,
   );
+  const [cafeList, setCafeList] = useState<Cafe[]>([]);
+  const [filteredCafeList, setFilteredCafeList] = useState<Cafe[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSearchResult = (result: Cafe[]) => {
+    setFilteredCafeList(result);
+  };
+
+  // 지도 이동 및 초기 로드시 카페 데이터 업데이트
+  useEffect(() => {
+    const updateCafeData = async () => {
+      if (!mapRef.current || !userLocation) return;
+      const bounds = mapRef.current.getBounds();
+      if (!bounds) return;
+
+      setIsLoading(true);
+      try {
+        const data = await fetchCafesByBounds(
+          bounds,
+          userLocation.lat,
+          isOpenOnly,
+        );
+        setCafeData(data);
+        setFilteredCafeList(data);
+      } catch (err) {
+        setError('카페 정보를 불러오는데 실패했습니다.');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // let listener: naver.maps.MapEventListener | null = null;
+    let listener: any = null;
+
+    if (mapRef.current && window.naver?.maps) {
+      // 이벤트 리스너 등록 시 반환값 저장
+      listener = window.naver.maps.Event.addListener(
+        mapRef.current,
+        'idle',
+        updateCafeData,
+      );
+    }
+
+    // cleanup 함수
+    return () => {
+      if (listener) {
+        window.naver?.maps?.Event.removeListener(listener);
+      }
+    };
+  }, [userLocation, isOpenOnly]);
+  // useEffect(() => {
+  //   const updateCafeData = async () => {
+  //     if (!mapRef.current || !userLocation) return;
+
+  //     const bounds = mapRef.current.getBounds();
+  //     if (!bounds) return;
+
+  //     setIsLoading(true);
+  //     try {
+  //       const data = await fetchCafesByBounds(
+  //         bounds,
+  //         userLocation.lat,
+  //         isOpenOnly,
+  //       );
+  //       setCafeData(data);
+  //       setFilteredCafeList(data);
+  //     } catch (err) {
+  //       setError('카페 정보를 불러오는데 실패했습니다.');
+  //       console.error(err);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   // 초기 데이터 로드
+  //   updateCafeData();
+
+  //   // 지도 이동 이벤트 리스너
+  //   if (mapRef.current && window.naver?.maps) {
+  //     window.naver.maps.Event.addListener(
+  //       mapRef.current,
+  //       'idle',
+  //       updateCafeData,
+  //     );
+  //   }
+
+  //   return () => {
+  //     if (mapRef.current && window.naver?.maps) {
+  //       window.naver.maps.Event.removeListener(
+  //         mapRef.current,
+  //         'idle',
+  //         updateCafeData,
+  //       );
+  //     }
+  //   };
+  // }, [isOpenOnly]);
+
   //마커 클릭시 열리는 정보창
   useEffect(() => {
     if (window.naver && window.naver.maps) {
@@ -66,10 +201,6 @@ export default function Map() {
     setIsPanelOpen(!isPanelOpen);
   };
   const mapRef = useRef<any>(null);
-  const [userLocation, setUserLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
 
   //@화면의 4방향 좌표값 백엔드에 전송
   useEffect(() => {
@@ -196,21 +327,6 @@ export default function Map() {
     }
   }, []); //의존성배열 userLocation 넣으면 무한로딩문제발생함;
 
-  //marker 불러오기
-  useEffect(() => {
-    const fetchCafeData = async () => {
-      try {
-        const response = await fetch('/cafedata.json');
-        const data = await response.json();
-        console.log('카페 데이터', data); //카페 데이터 출력해보기
-        setCafeData(data);
-      } catch (error) {
-        console.error('데이터 불러오기 실패', error);
-      }
-    };
-    fetchCafeData();
-  }, []);
-
   const handleCafeOnly = () => {
     setIsCafeOnly(!isCafeOnly);
   };
@@ -287,8 +403,8 @@ export default function Map() {
             ? `
           <div style="margin: 10px 0;">
             <img src="${clickedCafe.images[0]}" 
-                 alt="${clickedCafe.title}" 
-                 style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px;"
+                alt="${clickedCafe.title}" 
+                style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px;"
             />
           </div>
         `
@@ -304,12 +420,49 @@ export default function Map() {
   };
 
   const renderSidePanel = () => {
-    switch (activeMenu) {
-      case 'map':
-        return <div className={styles.sidePanelContent}>사이드패널</div>;
-      case 'favorite':
-        return <div className={styles.sidePanelContent}>리스트</div>;
-    }
+    return (
+      <div className={styles.sidePanelContent}>
+        <Search cafeList={cafeList} onSearchResult={handleSearchResult} />
+        {activeMenu === 'map' && (
+          <div className={styles.resultList}>
+            {filteredCafeList.map(cafe => (
+              <div
+                key={cafe.id}
+                className={styles.cafeItem}
+                onClick={() => {
+                  if (mapRef.current) {
+                    const position = new window.naver.maps.LatLng(
+                      cafe.latitude,
+                      cafe.longitude,
+                    );
+                    mapRef.current.setCenter(position);
+                    mapRef.current.setZoom(14);
+
+                    const markers = mapRef.current.markers || [];
+                    const marker = markers.find((m: naver.maps.Marker) => {
+                      const pos = m.getPosition();
+                      return (
+                        Math.abs(pos.lat() - cafe.latitude) < 0.0001 &&
+                        Math.abs(pos.lng() - cafe.longitude) < 0.0001
+                      );
+                    });
+                    if (marker) {
+                      handleMarkerClick(marker);
+                    }
+                  }
+                }}
+              >
+                <h3>{cafe.title}</h3>
+                <p>{cafe.address}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {activeMenu === 'favorite' && (
+          <div className={styles.sidePanelContent}>리스트</div>
+        )}
+      </div>
+    );
   };
   return (
     <div className={styles.container}>
@@ -329,7 +482,7 @@ export default function Map() {
         <div
           className={`${styles.sidePanel} ${!isPanelOpen ? styles.sidePanelClosed : ''}`}
         >
-          <div className={styles.sidePanelContent}></div>
+          <div className={styles.sidePanelContent}>{renderSidePanel()}</div>
         </div>
         <button
           onClick={handlePanelOpen}

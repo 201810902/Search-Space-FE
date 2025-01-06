@@ -48,9 +48,9 @@ const Navigation = () => {
             <span className={style.span}>지도보기</span>
           </Link>
           <Link
-            href="/Search"
-            className={`${style.link} ${activeLink === '/Search' ? style.active : ''}`}
-            onClick={() => handleLinkClick('/Search')}
+            href="/search"
+            className={`${style.link} ${activeLink === '/search' ? style.active : ''}`}
+            onClick={() => handleLinkClick('/search')}
           >
             <Image
               src={activeLink === '/Search' ? Search_active : Search}
