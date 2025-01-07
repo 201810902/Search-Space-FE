@@ -4,10 +4,21 @@ import { Cafe } from '../types/cafe';
 import { apiService } from '../pages/api/api';
 interface SearchProps {
   cafeList: Cafe[];
-  onSearchResult: (result: Cafe[]) => void;
+  onSearchResult: (result: Cafe[], keyword: string) => void;
+  bounds: {
+    userLocation: [number, number];
+    topLeftLat: number;
+    topLeftLng: number;
+    bottomRightLat: number;
+    bottomRightLng: number;
+  };
 }
 
-export default function Search({ cafeList, onSearchResult }: SearchProps) {
+export default function Search({
+  cafeList,
+  onSearchResult,
+  bounds,
+}: SearchProps) {
   const [keyword, setKeyword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,7 +29,7 @@ export default function Search({ cafeList, onSearchResult }: SearchProps) {
     setKeyword(searchKeyword);
     //검색어 없는 경우 전체 목록 표시
     if (!searchKeyword.trim()) {
-      onSearchResult(cafeList);
+      onSearchResult(cafeList, searchKeyword);
       return;
     }
     if (searchTimer.current) {
@@ -27,12 +38,24 @@ export default function Search({ cafeList, onSearchResult }: SearchProps) {
     searchTimer.current = window.setTimeout(async () => {
       try {
         setIsLoading(true);
-        const page = 1;
-        const results = await apiService.searchCafes(searchKeyword, page);
-        onSearchResult(results);
+        const params = {
+          ...bounds,
+          userLocation: [bounds.userLocation[0], bounds.userLocation[1]] as [
+            number,
+            number,
+          ],
+          postId: 0,
+          limit: 20,
+          keyword: searchKeyword,
+          postType: 'CAFE' as 'CAFE',
+          isOpen: false,
+          orderBy: 'DISTANCE' as 'DISTANCE',
+        };
+        const results = await apiService.searchCafes(searchKeyword, params);
+        onSearchResult(results, searchKeyword);
       } catch (error) {
         console.error('검색 오류:', error);
-        onSearchResult([]);
+        onSearchResult([], searchKeyword);
       } finally {
         setIsLoading(false);
       }

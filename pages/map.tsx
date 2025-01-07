@@ -36,25 +36,28 @@ interface CafeData {
 const fetchCafesByBounds = async (
   bounds: naver.maps.LatLngBounds,
   userLat: number,
+  userLng: number,
   isOpen: boolean,
+  keyword: string,
 ) => {
   const ne = bounds.getNE();
   const sw = bounds.getSW();
   const params = {
-    userLocation: [userLat] as [number],
+    userLocation: [userLat, userLng] as [number, number],
     topLeftLat: ne.lat(),
     topLeftLng: sw.lng(),
     bottomRightLat: sw.lat(),
     bottomRightLng: ne.lng(),
+    postId: 0, // 추가
     limit: 20,
+    keyword: keyword, // 추가
     postType: 'CAFE' as 'CAFE',
     isOpen: isOpen,
     orderBy: 'DISTANCE' as 'DISTANCE',
   };
   console.log('API 요청 파라미터:', params);
   try {
-    const data = await apiService.getCafes(params);
-    console.log(params);
+    const data = await apiService.searchCafes(keyword, params);
 
     return data;
   } catch (err) {
@@ -81,9 +84,10 @@ export default function Map() {
   const [filteredCafeList, setFilteredCafeList] = useState<Cafe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const handleSearchResult = (result: Cafe[]) => {
+  const [keyword, setKeyword] = useState('');
+  const handleSearchResult = (result: Cafe[], searchKeyword: string) => {
     setFilteredCafeList(result);
+    setKeyword(searchKeyword);
   };
 
   // 지도 이동 및 초기 로드시 카페 데이터 업데이트
@@ -98,7 +102,9 @@ export default function Map() {
         const data = await fetchCafesByBounds(
           bounds,
           userLocation.lat,
+          userLocation.lng,
           isOpenOnly,
+          keyword,
         );
         setCafeData(data);
         setFilteredCafeList(data);
@@ -421,9 +427,29 @@ export default function Map() {
   };
 
   const renderSidePanel = () => {
+    const bounds = mapRef.current?.getBounds();
+    const searchBounds =
+      bounds && userLocation
+        ? {
+            userLocation: [userLocation.lat, userLocation.lng] as [
+              number,
+              number,
+            ],
+            topLeftLat: bounds.getNE().lat(),
+            topLeftLng: bounds.getSW().lng(),
+            bottomRightLat: bounds.getSW().lat(),
+            bottomRightLng: bounds.getNE().lng(),
+          }
+        : null;
     return (
       <div className={styles.sidePanelContent}>
-        <Search cafeList={cafeList} onSearchResult={handleSearchResult} />
+        {searchBounds && (
+          <Search
+            cafeList={cafeList}
+            onSearchResult={handleSearchResult}
+            bounds={searchBounds}
+          />
+        )}
         {activeMenu === 'map' && (
           <div className={styles.resultList}>
             {filteredCafeList.map(cafe => (
