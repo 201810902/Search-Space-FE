@@ -3,11 +3,11 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
-        destination: 'https://searchspaces.store/api/:path*',
+        source: '/:path*',
+        destination: 'https://searchspaces.store/:path*',
       },
     ];
   },
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;

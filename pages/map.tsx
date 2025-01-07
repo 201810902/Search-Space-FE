@@ -54,6 +54,7 @@ const fetchCafesByBounds = async (
   console.log('API 요청 파라미터:', params);
   try {
     const data = await apiService.getCafes(params);
+    console.log(params);
 
     return data;
   } catch (err) {
