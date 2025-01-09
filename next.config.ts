@@ -9,8 +9,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: 'api/:path*',
-        destination: 'https://searchspaces.store/api/:path*',
+        source: '/:path*',
+        destination: 'https://searchspaces.store/:path*',
       },
     ];
   },

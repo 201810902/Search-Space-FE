@@ -48,9 +48,9 @@ const fetchCafesByBounds = async (
     topLeftLng: sw.lng(),
     bottomRightLat: sw.lat(),
     bottomRightLng: ne.lng(),
-    postId: 0, // 추가
+    postId: 0,     
     limit: 20,
-    keyword: keyword, // 추가
+    keyword: keyword,    
     postType: 'CAFE' as 'CAFE',
     isOpen: isOpen,
     orderBy: 'DISTANCE' as 'DISTANCE',
@@ -85,6 +85,7 @@ export default function Map() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [keyword, setKeyword] = useState('');
+  const [isMapInitialized, setIsMapInitialized] = useState(false);
   const handleSearchResult = (result: Cafe[], searchKeyword: string) => {
     setFilteredCafeList(result);
     setKeyword(searchKeyword);
@@ -239,10 +240,10 @@ export default function Map() {
         zoom: 14,
         tileTransition: false,
         loadingDisplay: false,
-        bounds: new window.naver.maps.LatLngBounds(
-          new window.naver.maps.LatLng(latitude - 0.02, longitude - 0.02),
-          new window.naver.maps.LatLng(latitude + 0.02, longitude + 0.02),
-        ),
+        // bounds: new window.naver.maps.LatLngBounds(
+        //   new window.naver.maps.LatLng(latitude - 0.02, longitude - 0.02),
+        //   new window.naver.maps.LatLng(latitude + 0.02, longitude + 0.02),
+        // ),
         //타일 로딩 최적화
         maxZoom: 20,
         minZoom: 10,
@@ -252,6 +253,7 @@ export default function Map() {
       };
 
       mapRef.current = new window.naver.maps.Map('map', mapOptions);
+      setIsMapInitialized(true);
       //초기 로드시 호출
 
       let isMoving = false;
@@ -427,20 +429,21 @@ export default function Map() {
   };
 
   const renderSidePanel = () => {
-    const bounds = mapRef.current?.getBounds();
-    const searchBounds =
-      bounds && userLocation
-        ? {
-            userLocation: [userLocation.lat, userLocation.lng] as [
-              number,
-              number,
-            ],
-            topLeftLat: bounds.getNE().lat(),
-            topLeftLng: bounds.getSW().lng(),
-            bottomRightLat: bounds.getSW().lat(),
-            bottomRightLng: bounds.getNE().lng(),
-          }
-        : null;
+    if (!isMapInitialized || !mapRef.current) {
+      return null;
+    }
+
+    const bounds = mapRef.current.getBounds();
+    if (!bounds || !userLocation) return null;
+    
+    const searchBounds = {
+      userLocation: [userLocation.lat, userLocation.lng] as [number, number],
+      topLeftLat: bounds.getNE().lat(),
+      topLeftLng: bounds.getSW().lng(),
+      bottomRightLat: bounds.getSW().lat(),
+      bottomRightLng: bounds.getNE().lng(),
+    };
+
     return (
       <div className={styles.sidePanelContent}>
         {searchBounds && (
