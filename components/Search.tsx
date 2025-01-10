@@ -1,7 +1,9 @@
 import style from './Search.module.css';
-import React, { useState } from 'react';
+import React, { useState, useCallback, KeyboardEvent } from 'react';
 import { Cafe } from '../types/cafe';
 import { apiService } from '../pages/api/api';
+import axios from 'axios';
+
 interface SearchProps {
   cafeList: Cafe[];
   onSearchResult: (result: Cafe[], keyword: string) => void;
@@ -20,58 +22,66 @@ export default function Search({
   bounds,
 }: SearchProps) {
   const [keyword, setKeyword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
-  const searchTimer = React.useRef<number>();
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const searchKeyword = e.target.value;
-    setKeyword(searchKeyword);
-    //검색어 없는 경우 전체 목록 표시
-    if (!searchKeyword.trim()) {
-      onSearchResult(cafeList, searchKeyword);
-      return;
-    }
-    if (searchTimer.current) {
-      window.clearTimeout(searchTimer.current);
-    }
-    searchTimer.current = window.setTimeout(async () => {
+  const handleSearch = useCallback(
+    async (keyword: string) => {
+      setIsSearching(true);
+      setSearchError(null);
+      
       try {
-        setIsLoading(true);
-        const params = {
-          ...bounds,
-          userLocation: [bounds.userLocation[0], bounds.userLocation[1]] as [
-            number,
-            number,
-          ],
-          postId: 0,
-          limit: 20,
-          keyword: searchKeyword,
-          postType: 'CAFE' as 'CAFE',
-          isOpen: false,
-          orderBy: 'DISTANCE' as 'DISTANCE',
-        };
-        const results = await apiService.searchCafes(searchKeyword, params);
-        onSearchResult(results, searchKeyword);
+        const result = await apiService.searchCafes(keyword, bounds);
+        onSearchResult(result, keyword);
+        // 검색 결과가 없는 경우
+        if (!result || result.length === 0) {
+          setSearchError('검색하신 카페를 찾을 수 없습니다.');
+        }
       } catch (error) {
-        console.error('검색 오류:', error);
-        onSearchResult([], searchKeyword);
+        // 404 에러인 경우 사용자 친화적 메시지 표시
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          setSearchError('검색하신 카페를 찾을 수 없습니다.');
+          onSearchResult([], keyword); // 빈 배열 전달
+        } else {
+          setSearchError('검색 중 오류가 발생했습니다.');
+        }
       } finally {
-        setIsLoading(false);
+        setIsSearching(false);
       }
-    }, 500);
+    },
+    [bounds, onSearchResult]
+  );
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch(keyword);
+    }
   };
+
   return (
-    <div>
+    <div className={style.searchContainer}>
       <input
         type="text"
         value={keyword}
-        onChange={handleSearch}
-        placeholder="카페 이름으로 검색"
+        onChange={(e) => setKeyword(e.target.value)}
+        placeholder="카페 검색..."
         className={style.searchInput}
-        disabled={isLoading}
+        onKeyDown={handleKeyDown}
       />
-      {isLoading && <span className={style.loadingIndicator}>검색중...</span>}
+      <button 
+        onClick={() => handleSearch(keyword)}
+        className={style.searchButton}
+      >
+        검색
+      </button>
+      
+      {/* 에러 메시지 표시 */}
+      {searchError && (
+        <div className={style.searchError}>
+          {searchError}
+        </div>
+      )}
     </div>
   );
 }
