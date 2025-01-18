@@ -5,7 +5,7 @@ const BASE_URL = '/api';
 // 기본 axios 인스턴스 생성
 export const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true,  // credentials 설정만 유지
+  withCredentials: true, // credentials 설정만 유지
 });
 
 export const apiService = {
@@ -55,12 +55,12 @@ export const apiService = {
         ...params,
         userLocation: params.userLocation.join(','),
         postType: 'CAFE',
-        orderBy: 'DISTANCE'
+        orderBy: 'DISTANCE',
       };
 
       // URL 경로 수정
       const response = await api.get('/post/cursorList', {
-        params: apiParams
+        params: apiParams,
       });
       return response.data;
     } catch (error) {

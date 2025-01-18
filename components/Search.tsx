@@ -1,5 +1,5 @@
 import style from './Search.module.css';
-import React, { useState, useCallback, KeyboardEvent } from 'react';
+import React, { useState, useCallback, KeyboardEvent, useRef } from 'react';
 import { Cafe } from '../types/cafe';
 import { apiService } from '../pages/api/api';
 import axios from 'axios';
@@ -24,13 +24,18 @@ export default function Search({
   const [keyword, setKeyword] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleSearch = useCallback(
     async (keyword: string) => {
+      //검색어 비어있는데 검색 버튼 누르면 포커스 효과만 주기
+      if (!keyword.trim()) {
+        searchInputRef.current?.focus();
+        return;
+      }
       setIsSearching(true);
       setSearchError(null);
-      
+
       try {
         const result = await apiService.searchCafes(keyword, bounds);
         onSearchResult(result, keyword);
@@ -42,7 +47,7 @@ export default function Search({
         // 404 에러인 경우 사용자 친화적 메시지 표시
         if (axios.isAxiosError(error) && error.response?.status === 404) {
           setSearchError('검색하신 카페를 찾을 수 없습니다.');
-          onSearchResult([], keyword); // 빈 배열 전달
+          onSearchResult([], keyword); // 검색 결과로 빈 배열 전달
         } else {
           setSearchError('검색 중 오류가 발생했습니다.');
         }
@@ -50,7 +55,7 @@ export default function Search({
         setIsSearching(false);
       }
     },
-    [bounds, onSearchResult]
+    [bounds, onSearchResult],
   );
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -62,26 +67,23 @@ export default function Search({
   return (
     <div className={style.searchContainer}>
       <input
+        ref={searchInputRef}
         type="text"
         value={keyword}
-        onChange={(e) => setKeyword(e.target.value)}
+        onChange={e => setKeyword(e.target.value)}
         placeholder="카페 검색..."
         className={style.searchInput}
         onKeyDown={handleKeyDown}
       />
-      <button 
+      <button
         onClick={() => handleSearch(keyword)}
         className={style.searchButton}
       >
         검색
       </button>
-      
+
       {/* 에러 메시지 표시 */}
-      {searchError && (
-        <div className={style.searchError}>
-          {searchError}
-        </div>
-      )}
+      {searchError && <div className={style.searchError}>{searchError}</div>}
     </div>
   );
 }

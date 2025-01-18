@@ -48,9 +48,9 @@ const fetchCafesByBounds = async (
     topLeftLng: sw.lng(),
     bottomRightLat: sw.lat(),
     bottomRightLng: ne.lng(),
-    postId: 0,     
+    postId: 0,
     limit: 20,
-    keyword: keyword,    
+    keyword: keyword,
     postType: 'CAFE' as 'CAFE',
     isOpen: isOpen,
     orderBy: 'DISTANCE' as 'DISTANCE',
@@ -98,26 +98,28 @@ export default function Map() {
       const bounds = mapRef.current.getBounds();
       if (!bounds) return;
 
-      setIsLoading(true);
-      try {
-        const data = await fetchCafesByBounds(
-          bounds,
-          userLocation.lat,
-          userLocation.lng,
-          isOpenOnly,
-          keyword,
-        );
-        setCafeData(data);
-        setFilteredCafeList(data);
-      } catch (err) {
-        setError('카페 정보를 불러오는데 실패했습니다.');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+      // keyword가 있을 때만 API 호출
+      if (keyword) {
+        setIsLoading(true);
+        try {
+          const data = await fetchCafesByBounds(
+            bounds,
+            userLocation.lat,
+            userLocation.lng,
+            isOpenOnly,
+            keyword,
+          );
+          setCafeData(data);
+          setFilteredCafeList(data);
+        } catch (err) {
+          setError('카페 정보를 불러오는데 실패했습니다.');
+          console.error(err);
+        } finally {
+          setIsLoading(false);
+        }
       }
     };
 
-    // let listener: naver.maps.MapEventListener | null = null;
     let listener: any = null;
 
     if (mapRef.current && window.naver?.maps) {
@@ -135,53 +137,7 @@ export default function Map() {
         window.naver?.maps?.Event.removeListener(listener);
       }
     };
-  }, [userLocation, isOpenOnly]);
-  // useEffect(() => {
-  //   const updateCafeData = async () => {
-  //     if (!mapRef.current || !userLocation) return;
-
-  //     const bounds = mapRef.current.getBounds();
-  //     if (!bounds) return;
-
-  //     setIsLoading(true);
-  //     try {
-  //       const data = await fetchCafesByBounds(
-  //         bounds,
-  //         userLocation.lat,
-  //         isOpenOnly,
-  //       );
-  //       setCafeData(data);
-  //       setFilteredCafeList(data);
-  //     } catch (err) {
-  //       setError('카페 정보를 불러오는데 실패했습니다.');
-  //       console.error(err);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  //   // 초기 데이터 로드
-  //   updateCafeData();
-
-  //   // 지도 이동 이벤트 리스너
-  //   if (mapRef.current && window.naver?.maps) {
-  //     window.naver.maps.Event.addListener(
-  //       mapRef.current,
-  //       'idle',
-  //       updateCafeData,
-  //     );
-  //   }
-
-  //   return () => {
-  //     if (mapRef.current && window.naver?.maps) {
-  //       window.naver.maps.Event.removeListener(
-  //         mapRef.current,
-  //         'idle',
-  //         updateCafeData,
-  //       );
-  //     }
-  //   };
-  // }, [isOpenOnly]);
+  }, [userLocation, isOpenOnly, keyword]); // keyword를 의존성 배열에 추가
 
   //마커 클릭시 열리는 정보창
   useEffect(() => {
@@ -435,7 +391,7 @@ export default function Map() {
 
     const bounds = mapRef.current.getBounds();
     if (!bounds || !userLocation) return null;
-    
+
     const searchBounds = {
       userLocation: [userLocation.lat, userLocation.lng] as [number, number],
       topLeftLat: bounds.getNE().lat(),
