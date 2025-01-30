@@ -9,6 +9,11 @@ import { useNavigationStore } from '@/store/navigationStore';
 import CafePreview from '../components/CafePreview';
 import { Cafe } from '@/types/cafe';
 import Search from '../components/Search';
+import { useRouter } from 'next/router';
+import Modal from '../components/Modal';
+import NewPlaceForm from '../components/NewPlaceForm';
+import { CafeDetail } from '@/types/cafe';
+import CafeDetailModal from './mypage/modals/CafeDetailModal';
 declare global {
   interface Window {
     naver: typeof naver;
@@ -66,6 +71,14 @@ const fetchCafesByBounds = async (
   }
 };
 
+interface ContextMenu {
+  visible: boolean;
+  x: number;
+  y: number;
+  lat: number;
+  lng: number;
+}
+
 export default function Map() {
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -86,6 +99,27 @@ export default function Map() {
   const [error, setError] = useState<string | null>(null);
   const [keyword, setKeyword] = useState('');
   const [isMapInitialized, setIsMapInitialized] = useState(false);
+  const [contextMenu, setContextMenu] = useState<ContextMenu>({
+    visible: false,
+    x: 0,
+    y: 0,
+    lat: 0,
+    lng: 0,
+  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const router = useRouter();
+  const mapRef = useRef<any>(null);
+  const [isAddMode, setIsAddMode] = useState(false);
+  const [tempMarker, setTempMarker] = useState<any>(null);
+  const [showNewPlaceForm, setShowNewPlaceForm] = useState(false);
+  const [selectedCafeId, setSelectedCafeId] = useState<number | null>(null);
+  const [cafeDetail, setCafeDetail] = useState<CafeDetail | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
   const handleSearchResult = (result: Cafe[], searchKeyword: string) => {
     setFilteredCafeList(result);
     setKeyword(searchKeyword);
@@ -164,7 +198,6 @@ export default function Map() {
   const handlePanelOpen = () => {
     setIsPanelOpen(!isPanelOpen);
   };
-  const mapRef = useRef<any>(null);
 
   //@화면의 4방향 좌표값 백엔드에 전송
   useEffect(() => {
@@ -450,19 +483,134 @@ export default function Map() {
       </div>
     );
   };
+
+  useEffect(() => {
+    if (!mapRef.current || !window.naver?.maps) return;
+
+    let rightClickListener: any = null;
+
+    try {
+      rightClickListener = window.naver.maps.Event.addListener(
+        mapRef.current,
+        'rightclick',
+        (e: {
+          coord: { x: number; y: number };
+          domEvent: { clientX: number; clientY: number };
+        }) => {
+          const point = {
+            x: e.domEvent.clientX,
+            y: e.domEvent.clientY,
+          };
+          const coord = e.coord;
+
+          setContextMenu({
+            visible: true,
+            x: point.x,
+            y: point.y,
+            lat: coord.y,
+            lng: coord.x,
+          });
+        },
+      );
+    } catch (error) {
+      console.error('이벤트 리스너 등록 중 에러:', error);
+    }
+
+    return () => {
+      if (rightClickListener) {
+        window.naver.maps.Event.removeListener(rightClickListener);
+      }
+    };
+  }, [mapRef.current]);
+
+  const handleAddPlace = () => {
+    if (contextMenu.visible) {
+      setSelectedLocation({
+        lat: contextMenu.lat,
+        lng: contextMenu.lng,
+      });
+      setShowNewPlaceForm(true);
+      setContextMenu(prev => ({ ...prev, visible: false }));
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedLocation(null);
+  };
+
+  // 공간 등록 모드 처리
+  useEffect(() => {
+    if (!mapRef.current || !window.naver?.maps) return;
+
+    let clickListener: any = null;
+
+    // 다른 페이지에서 공간등록 버튼을 통해 왔을 때
+    if (router.asPath === '/map' && router.query.from === 'addspace') {
+      setIsAddMode(true);
+      alert('등록하고 싶은 위치를 지도에서 클릭해주세요.');
+
+      try {
+        clickListener = window.naver.maps.Event.addListener(
+          mapRef.current,
+          'click',
+          (e: { coord: { x: number; y: number } }) => {
+            // 이전 임시 마커 제거
+            if (tempMarker) {
+              tempMarker.setMap(null);
+            }
+
+            // 새로운 마커 생성
+            const marker = new window.naver.maps.Marker({
+              position: new window.naver.maps.LatLng(e.coord.y, e.coord.x),
+              map: mapRef.current,
+            });
+
+            setTempMarker(marker);
+            setSelectedLocation({
+              lat: e.coord.y,
+              lng: e.coord.x,
+            });
+            setIsModalOpen(true);
+            setIsAddMode(false);
+
+            // 클릭 이벤트 리스너 제거
+            if (clickListener) {
+              window.naver.maps.Event.removeListener(clickListener);
+            }
+          },
+        );
+      } catch (error) {
+        console.error('이벤트 리스너 등록 중 에러:', error);
+      }
+    }
+
+    return () => {
+      if (clickListener) {
+        window.naver.maps.Event.removeListener(clickListener);
+      }
+      if (tempMarker) {
+        tempMarker.setMap(null);
+      }
+    };
+  }, [router.asPath, router.query]);
+
+  // 카페 클릭 핸들러
+  const handleCafeClick = async (cafeId: number) => {
+    try {
+      const detail = await apiService.getCafeDetail(cafeId);
+      setCafeDetail(detail);
+      setSelectedCafeId(cafeId);
+      setShowDetailModal(true);
+    } catch (error) {
+      console.error('카페 상세 정보 조회 실패:', error);
+      alert('카페 정보를 불러오는데 실패했습니다.');
+    }
+  };
+
   return (
     <div className={styles.container}>
-      <div
-        id="map"
-        ref={mapRef}
-        style={{
-          width: '100%',
-          height: '100%',
-          transform: 'translateZ(0)',
-          backfaceVisibility: 'hidden',
-          willChange: 'transform', // 성능 최적화를 위한 속성,
-        }}
-      />
+      <div id="map" ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
       <div className={styles.sidePanelContainer}>
         <div
@@ -527,6 +675,59 @@ export default function Map() {
           ></button>
         </div>
       </div>
+
+      {/* 우클릭 컨텍스트 메뉴 */}
+      {contextMenu.visible && (
+        <div
+          className={styles.contextMenu}
+          style={{
+            position: 'absolute',
+            left: contextMenu.x,
+            top: contextMenu.y,
+          }}
+        >
+          <button onClick={handleAddPlace}>공간 등록하기</button>
+        </div>
+      )}
+
+      {/* 공간 등록 모달 */}
+      {showNewPlaceForm && selectedLocation && (
+        <Modal
+          isOpen={showNewPlaceForm}
+          onClose={() => {
+            setShowNewPlaceForm(false);
+            if (tempMarker) {
+              tempMarker.setMap(null);
+            }
+          }}
+        >
+          <NewPlaceForm
+            initialLocation={selectedLocation}
+            onClose={() => {
+              setShowNewPlaceForm(false);
+              if (tempMarker) {
+                tempMarker.setMap(null);
+              }
+            }}
+          />
+        </Modal>
+      )}
+
+      {isAddMode && (
+        <div className={styles.addModeGuide}>
+          등록하고 싶은 위치를 지도에서 클릭해주세요
+        </div>
+      )}
+
+      {/* 카페 상세 모달 */}
+      <CafeDetailModal
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setCafeDetail(null);
+        }}
+        cafeDetail={cafeDetail}
+      />
     </div>
   );
 }

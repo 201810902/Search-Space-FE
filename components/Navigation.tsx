@@ -13,15 +13,46 @@ import { useNavigationStore } from '@/store/navigationStore';
 import Search from '../public/search.svg';
 import Search_active from '../public/search_active.svg';
 import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { useUserStore } from '@/store/user';
+import { apiService } from '@/pages/api/api';
 
 const Navigation = () => {
+  const router = useRouter();
   const [activeLink, setActiveLink] = useState('');
   const { activeMenu, setActiveMenu } = useNavigationStore();
 
-  const handleLinkClick = (link: string) => {
+  const handleLinkClick = async (link: string) => {
+    if (link === '/mypage') {
+      try {
+        const memberInfo = await apiService.getMemberInfo();
+        console.log('현재 로그인된 회원 정보:', memberInfo);
+
+        setActiveLink(link);
+        setActiveMenu(link);
+        router.push(link);
+      } catch (error: any) {
+        console.error('회원 정보 조회 실패:', error);
+        if (error.message === 'unauthorized') {
+          router.push('/login');
+        } else if (error.message === 'network_error') {
+          alert('서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.');
+        } else {
+          alert('오류가 발생했습니다. 다시 시도해주세요.');
+          router.push('/login');
+        }
+      }
+      return;
+    }
+
+    if (link === '/addspace') {
+      router.push('/map?from=addspace');
+      return;
+    }
+
     setActiveLink(link);
     setActiveMenu(link);
-    console.log('nav 상태 테스트', activeMenu, activeLink);
+    router.push(link);
   };
   return (
     <>
@@ -48,12 +79,12 @@ const Navigation = () => {
             <span className={style.span}>지도보기</span>
           </Link>
           <Link
-            href="/search"
-            className={`${style.link} ${activeLink === '/search' ? style.active : ''}`}
-            onClick={() => handleLinkClick('/search')}
+            href="/view"
+            className={`${style.link} ${activeLink === '/view' ? style.active : ''}`}
+            onClick={() => handleLinkClick('/view')}
           >
             <Image
-              src={activeLink === '/Search' ? Search_active : Search}
+              src={activeLink === '/view' ? Search_active : Search}
               alt="공간 탐색 보기 메뉴"
               width={45}
               height={40}
@@ -74,9 +105,9 @@ const Navigation = () => {
             <span className={style.span}>찜한 공간</span>
           </Link>
           <Link
-            href="/addspace"
+            href="/map?from=addspace"
             className={`${style.link} ${activeLink === '/addspace' ? style.active : ''}`}
-            onClick={() => handleLinkClick('/addspace')}
+            onClick={() => handleLinkClick('/map?from=addspace')}
           >
             <Image
               src={activeLink === '/addspace' ? AddSpace_active : AddSpace}

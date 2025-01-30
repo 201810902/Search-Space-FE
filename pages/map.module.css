@@ -230,3 +230,41 @@
 .cafeItem {
     /* 기존 스타일 유지 */
 }
+
+.contextMenu {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    transform: translate(-50%, -20%);  /* 클릭 지점을 중심으로 메뉴 위치 조정 */
+}
+
+.contextMenu button {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+}
+
+.contextMenu button:hover {
+    background-color: #f5f5f5;
+}
+
+.addModeGuide {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 500;
+  z-index: 1000;
+}

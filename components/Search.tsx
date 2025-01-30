@@ -75,12 +75,12 @@ export default function Search({
         className={style.searchInput}
         onKeyDown={handleKeyDown}
       />
-      <button
+      {/* <button
         onClick={() => handleSearch(keyword)}
         className={style.searchButton}
       >
         검색
-      </button>
+      </button> */}
 
       {/* 에러 메시지 표시 */}
       {searchError && <div className={style.searchError}>{searchError}</div>}

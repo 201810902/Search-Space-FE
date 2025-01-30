@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = '/api';
+const BASE_URL = '';
 
 // 기본 axios 인스턴스 생성
 export const api = axios.create({
@@ -85,22 +85,68 @@ export const apiService = {
       }
       throw error;
     }
-    // // 카페 상세 정보 조회
-    // getCafeDetail: async (cafeId: number) => {
-    //   const response = await api.get(`/post/getPost`);
-    //   return response.data;
-    // },
+  },
 
-    // // 찜하기
-    // toggleFavorite: async (cafeId: number) => {
-    //   const response = await api.post(`/api/cafes/${cafeId}/favorite`);
-    //   return response.data;
-    // },
+  // 회원 정보 조회
+  getMemberInfo: async () => {
+    try {
+      const response = await api.get('/api/member');
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          // 401 Unauthorized 에러 시 로그인 페이지로 리다이렉트
+          console.error('인증되지 않은 사용자');
+          throw new Error('unauthorized');
+        }
+      }
+      throw error;
+    }
+  },
 
-    // // 찜한 카페 목록 조회
-    // getFavorites: async () => {
-    //   const response = await api.get('/api/cafes/favorites');
-    //   return response.data;
-    // },
+  // 카카오 로그인
+  kakaoLogin: async (kakaoUserData: {
+    kakaoId: number;
+    email: string;
+    nickname: string;
+    profileImage: string;
+  }) => {
+    try {
+      const response = await api.post('/api/auth/kakao', kakaoUserData);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error('카카오 로그인 요청 실패:', error.response?.data);
+      }
+      throw error;
+    }
+  },
+  // 좋아요 Top 10 카페 조회
+  getTop10Cafes: async () => {
+    const response = await api.get('/post/get/top10');
+    return response.data;
+  },
+  // 공간 등록
+  createSpace: async (spaceData: any) => {
+    const response = await api.post('/post/create', spaceData);
+    return response.data;
+  },
+
+  // 카페 상세 정보 조회
+  getCafeDetail: async (postId: number) => {
+    try {
+      const response = await api.get('/post/get/postInfo', {
+        params: {
+          postId,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error('카페 상세 정보 조회 실패:', error.response?.data);
+        throw error;
+      }
+      throw error;
+    }
   },
 };
