@@ -37,14 +37,8 @@ function Login() {
   }, []);
 
   const handleKakaoLogin = () => {
-    // 로컬 환경의 마이페이지로 리다이렉트하도록 설정
-    const redirectUri = 'http://localhost:3000/mypage';
-
-    // 백엔드의 카카오 로그인 인증 URL에 리다이렉트 URI 추가
-    const loginUrl = `https://searchspaces.store/oauth2/authorization/kakao?redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-    console.log('카카오 로그인 요청 URL:', loginUrl);
-    window.location.href = loginUrl;
+    // 네이버 로그인 인증 URL로 단순 리다이렉트
+    window.location.href = 'https://searchspaces.store/oauth2/authorization';
   };
 
   // useEffect를 사용하여 로그인 상태 확인
