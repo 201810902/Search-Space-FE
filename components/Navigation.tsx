@@ -12,15 +12,17 @@ import Scrap_active from '../public/scrap_active.svg';
 import { useNavigationStore } from '@/store/navigationStore';
 import Search from '../public/search.svg';
 import Search_active from '../public/search_active.svg';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useUserStore } from '@/store/user';
 import { apiService } from '@/pages/api/api';
+import Cookies from 'js-cookie';
 
 const Navigation = () => {
   const router = useRouter();
   const [activeLink, setActiveLink] = useState('');
   const { activeMenu, setActiveMenu } = useNavigationStore();
+  const { isLoggedIn, userInfo } = useUserStore();
 
   const handleLinkClick = async (link: string) => {
     if (link === '/mypage') {
@@ -54,6 +56,24 @@ const Navigation = () => {
     setActiveMenu(link);
     router.push(link);
   };
+
+  const handleMypageClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (isLoggedIn && userInfo) {
+      console.log('로그인 상태:', isLoggedIn);
+      console.log('사용자 정보:', userInfo);
+      console.log('저장된 토큰:', {
+        accessToken: Cookies.get('accessToken'),
+        refreshToken: Cookies.get('refreshToken'),
+      });
+      router.push('/mypage');
+    } else {
+      console.log('로그인이 필요합니다');
+      router.push('/login');
+    }
+  };
+
   return (
     <>
       <div className={style.container}>
@@ -120,9 +140,14 @@ const Navigation = () => {
           <Link
             href="/mypage"
             className={`${style.link} ${activeLink === '/mypage' ? style.active : ''}`}
-            onClick={() => handleLinkClick('/mypage')}
+            onClick={handleMypageClick}
           >
-            <Image src={mypage} alt="마이페이지 메뉴" width={30} height={30} />
+            <Image
+              src={activeLink === '/mypage' ? mypage : mypage}
+              alt="마이페이지 메뉴"
+              width={30}
+              height={30}
+            />
             <span className={style.span}>마이페이지</span>
           </Link>
         </nav>

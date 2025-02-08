@@ -8,6 +8,8 @@ import cafedata from '../../public/cafedata.json' assert { type: 'json' };
 import EditProfile from './modals/EditProfile';
 import userdata from '../../public/userdata.json' assert { type: 'json' };
 import { apiService } from '@/pages/api/api';
+import Cookies from 'js-cookie';
+import { useUserStore } from '@/store/user';
 
 interface DataItem {
   id: number;
@@ -32,10 +34,11 @@ interface MemberInfo {
   nickname: string;
   profileImage: string;
 }
-export default function Mypage() {
+
+const Mypage = () => {
   const router = useRouter();
+  const { fetchUserInfo, userInfo, isLoggedIn } = useUserStore();
   const { modal, id } = router.query;
-  const [memberInfo, setMemberInfo] = useState<MemberInfo | null>(null);
   const [viewType, setViewType] = useState<'grid' | 'list'>('list');
   const [contentType, setContentType] = useState<'mySpace' | 'myReview'>(
     'mySpace',
@@ -43,18 +46,34 @@ export default function Mypage() {
   const [cafeDetail, setCafeDetail] = useState<CafeDetail | null>(null);
 
   useEffect(() => {
-    const getMemberInfo = async () => {
-      try {
-        const memberInfo = await apiService.getMemberInfo();
-        console.log('회원정보:', memberInfo);
-        setMemberInfo(memberInfo);
-      } catch (error) {
-        console.error('회원 정보 조회 실패:', error);
+    // URL의 쿼리 파라미터에서 토큰 확인
+    const { accessToken, refreshToken } = router.query;
+
+    console.log('Tokens from query:', { accessToken, refreshToken }); // 토큰 확인
+
+    if (accessToken && refreshToken) {
+      // 토큰을 쿠키에 저장
+      Cookies.set('accessToken', accessToken as string, { expires: 1 });
+      Cookies.set('refreshToken', refreshToken as string, { expires: 7 });
+
+      console.log('Cookies after setting:', {
+        access: Cookies.get('accessToken'),
+        refresh: Cookies.get('refreshToken'),
+      }); // 쿠키 저장 확인
+
+      // 사용자 정보 가져오기
+      fetchUserInfo();
+
+      // 쿼리 파라미터 제거
+      router.replace('/mypage');
+    } else if (!isLoggedIn) {
+      // 토큰이 없고 로그인되지 않은 상태면 사용자 정보 가져오기 시도
+      fetchUserInfo().catch(() => {
         router.push('/login');
-      }
-    };
-    getMemberInfo();
-  }, [router]);
+      });
+    }
+  }, [router.query, fetchUserInfo, isLoggedIn]);
+
   const openModal = (id: number) => {
     router.push(`/mypage?modal=cafe-detail&id=${id}`, undefined, {
       shallow: true,
@@ -90,8 +109,8 @@ export default function Mypage() {
             <button></button>
           </div>
           <div className={styles.profileInfoContainer}>
-            <div className={styles.nickname}>nickname</div>
-            <div>email@gmail.com</div>
+            <div className={styles.nickname}>{userInfo?.nickname}</div>
+            <div>{userInfo?.email}</div>
             <button className={styles.editBtn}>회원정보 수정하기</button>
           </div>
         </div>
@@ -179,4 +198,6 @@ export default function Mypage() {
       </div>
     </>
   );
-}
+};
+
+export default Mypage;
